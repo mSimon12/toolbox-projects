@@ -1,3 +1,5 @@
 
-api:
+meteomatics:
+  login_url: https://login.meteomatics.com/api/v1/token
+  base_url: https://api.meteomatics.com
 

@@ -116,7 +116,7 @@ def main():
     args = parser.parse_args()
 
     data_fetcher = WeatherDataFetcher()
-    result = data_fetcher.get_current_temperature(args.latitude, args.longitude, args.units)
+    result = data_fetcher.get_current_temperature(float(args.latitude), float(args.longitude), args.units)
     print(result)
 
 

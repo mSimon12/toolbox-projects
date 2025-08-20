@@ -38,10 +38,24 @@ class WeatherDataFetcher:
         response = requests.get(url= login_url, headers=auth_header)
         if response.status_code == 200:
             response_payload = response.json()
+            self.__logger.info("Login successful!")
             self.__access_token = response_payload['access_token']
+        else:
+            self.__logger.error("Failed to login!")
 
     def logout(self):
+        self.__logger.info("Logout from API!")
         self.__access_token = ""
+
+    @staticmethod
+    def __validate_location(latitude: float, longitude: float) -> str:
+        if (latitude > 90) or (latitude < -90):
+            raise ValueError("Invalid latitude, must be between -90 and 90")
+
+        if (longitude > 180) or (longitude < -180):
+            raise ValueError("Invalid longitude, must be between -180 and 180")
+
+        return f"{round(latitude, 6)},{round(longitude, 6)}"
 
     def __build_url_request(self, interval:str, location:str, units:str) -> str:
         base_url = self.config['meteomatics']['base_url']
@@ -54,9 +68,7 @@ class WeatherDataFetcher:
             self.__logger.error(f"Request for invalid unit: {units}")
             raise ValueError("Invalid unit")
 
-        location = "49.434891,11.093997"
         complete_url = f"{base_url}/{interval}/{parameters}/{location}/json"
-
         return complete_url
 
     @staticmethod
@@ -77,12 +89,13 @@ class WeatherDataFetcher:
 
         return temperature_response
 
-    def get_current_temperature(self, city:str, units: str) -> dict | None:
+    def get_current_temperature(self, latitude: float, longitude:float, units: str) -> dict | None:
+        self.__logger.info("Current temperature requested!")
         if not self.__access_token:
             self.login()
         auth_header = {'Authorization': f"Bearer {self.__access_token}"}
 
-        location = "49.445582,11.082164"    #Nurnberg
+        location = self.__validate_location(latitude, longitude)
         interval = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         request_url = self.__build_url_request(interval, location, units)
 
@@ -90,18 +103,20 @@ class WeatherDataFetcher:
         if response.status_code == 200:
             response_payload = response.json()
 
+            self.__logger.info("Successfully fetch temperature data!")
             return self.__process_response(response_payload)
 
         return None
 
 def main():
     parser = argparse.ArgumentParser(description="Weather Data Fetcher")
-    parser.add_argument("--city", help="City name")
+    parser.add_argument("--latitude", default= 52.52081958147629, help="Latitude")
+    parser.add_argument("--longitude", default= 13.4094293014525, help="Longitude")
     parser.add_argument("--units", default="metric", choices=["metric", "imperial"], help="Units")
     args = parser.parse_args()
 
     data_fetcher = WeatherDataFetcher()
-    result = data_fetcher.get_current_temperature(args.city, args.units)
+    result = data_fetcher.get_current_temperature(args.latitude, args.longitude, args.units)
     print(result)
 
 

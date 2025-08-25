@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"log/slog"
 	"time"
 
 	"github.com/shirou/gopsutil/cpu"
@@ -24,10 +23,7 @@ type Usage struct {
 	percent float64
 }
 
-var metricsLogger *slog.Logger = GetLogger("Metrics")
-
 func cpuInfo() {
-	metricsLogger.Info("CPU Info:")
 	infos, _ := cpu.Info()
 	for _, info := range infos {
 		data, _ := json.MarshalIndent(info, "", " ")
@@ -40,7 +36,6 @@ func cpuInfo() {
 }
 
 func getCpuUsage(duration uint16) (cpuUsage, error) {
-	metricsLogger.Info("Get CPU Usage:")
 
 	cpuUse := cpuUsage{}
 
@@ -61,8 +56,6 @@ func getCpuUsage(duration uint16) (cpuUsage, error) {
 }
 
 func getMemoryUsage() (Usage, error) {
-	metricsLogger.Info("Get Memory Usage:")
-
 	memUse := Usage{}
 
 	usageStat, err := mem.VirtualMemory()
@@ -79,7 +72,6 @@ func getMemoryUsage() (Usage, error) {
 }
 
 func getDiskUsage() (Usage, error) {
-	metricsLogger.Info("Get Disk Usage:")
 	diskUse := Usage{}
 
 	usageStat, err := disk.Usage("/")

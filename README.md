@@ -10,7 +10,8 @@ These projects are not just code snippets — they follow best practices such as
 
 ## 📂 Projects
 
-- **Weather Fetcher** 🌦 – Fetch weather data from an API (logging + config + CLI)  
+- **Weather Fetcher** 🌦 – Fetch weather data from an API (logging + config + CLI) [Python]  
+- **System Monitor** 🖥️ – Periodical system resources monitoring(logging + CLI) [Golang]
 - (more coming soon...)
 
 ## 🎯 Purpose

@@ -26,6 +26,7 @@ The app will print system metrics every few seconds in structured JSON. The outp
 
 **Example 1:** 
 ``./sys-monitor -interval 2``
+
 Output: **terminal**
 ```bash
 {"time":"2025-08-25 22:01:19","level":"INFO","msg":"CPU","total":"23.56%","core1":"5.78%","core2":"6.44%","core3":"5.07%","core4":"4.73%"}
@@ -38,6 +39,7 @@ Output: **terminal**
 
 **Example 2:** 
 ``go run . -interval 5 -outputFile metrics``
+
 Output: **metrics.log**
 ```log
 {"time":"2025-08-25 22:04:30","level":"INFO","msg":"CPU","total":"34.70%","core1":"31.99%","core2":"29.35%","core3":"29.25%","core4":"29.93%"}

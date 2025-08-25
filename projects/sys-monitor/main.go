@@ -4,14 +4,24 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
+	"strings"
 	"time"
 )
 
 const size1GB float64 = 1073741824
 
-func getSystemMetrics(outputType string, outputFile string) {
-	metricsLogger := GetLogger(outputFile)
+func getSystemMetrics(outputFile string) {
+	var metricsLogger *slog.Logger
+	if outputFile == "" {
+		metricsLogger = GetLogger(false, outputFile)
+	} else {
+		if !strings.HasSuffix(outputFile, ".log") {
+			outputFile = outputFile + ".log"
+		}
+		metricsLogger = GetLogger(true, outputFile)
+	}
 
 	// CPU
 	cpuReport, _ := getCpuUsage(3)
@@ -45,10 +55,10 @@ func getSystemMetrics(outputType string, outputFile string) {
 	)
 }
 
-func metricsCycle(interval int, outputType string, outputFile string) {
+func metricsCycle(interval int, outputFile string) {
 	count := 0
 	for count < 2 {
-		getSystemMetrics(outputType, outputFile)
+		getSystemMetrics(outputFile)
 		time.Sleep(time.Duration(interval))
 		count++
 	}
@@ -58,22 +68,15 @@ func metricsCycle(interval int, outputType string, outputFile string) {
 func run() error {
 	var interval int
 	var outputFile string
-	var outputType string
 
 	flag.IntVar(&interval, "interval", 5, "Interval (s) between metrics measurements.")
-	flag.StringVar(&outputType, "outputType", "file", "Select output mode [file, cmd].")
-	flag.StringVar(&outputFile, "outputFile", "metrics", "Name of the file to save the output.")
+	flag.StringVar(&outputFile, "outputFile", "", "Name of the file to save the output [Empty = cmd output].")
 	flag.Parse()
 
 	if interval < 1 {
 		return errors.New("invalid interval: must be > 0")
 	}
-
-	if !((outputType == "file") || (outputType == "cmd")) {
-		return errors.New("invalid outputType: must be 'file' or 'cmd'")
-	}
-
-	metricsCycle(interval, outputType, outputFile)
+	metricsCycle(interval, outputFile)
 	return nil
 }
 

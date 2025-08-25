@@ -8,24 +8,46 @@ import (
 	"time"
 )
 
+const size1GB float64 = 1073741824
+
 func getSystemMetrics(outputType string, outputFile string) {
-	metricsLogger := GetLogger("metrics")
+	metricsLogger := GetLogger(outputFile)
 
-	// cpuInfo()
-
+	// CPU
 	cpuReport, _ := getCpuUsage(3)
-	metricsLogger.Info(fmt.Sprintf("CPU: %v", cpuReport))
+	fields := []interface{}{
+		"total", fmt.Sprintf("%.2f%%", cpuReport.total),
+	}
 
+	for idx, core := range cpuReport.cores {
+		key := fmt.Sprintf("core%d", idx+1)
+		value := fmt.Sprintf("%.2f%%", core)
+		fields = append(fields, key, value)
+	}
+	metricsLogger.Info("CPU", fields...)
+
+	// Memory
 	memReport, _ := getMemoryUsage()
-	metricsLogger.Info(fmt.Sprintf("Memory: %v", memReport))
+	metricsLogger.Info("Memory",
+		"total", fmt.Sprintf("%.2f GB", float64(memReport.total)/size1GB),
+		"free", fmt.Sprintf("%.2f GB", float64(memReport.free)/size1GB),
+		"used", fmt.Sprintf("%.2f GB", float64(memReport.used)/size1GB),
+		"percent", fmt.Sprintf("%.2f%%", memReport.percent),
+	)
 
+	// Disk
 	diskReport, _ := getDiskUsage()
-	metricsLogger.Info(fmt.Sprintf("Disk: %v", diskReport))
+	metricsLogger.Info("Disk",
+		"total", fmt.Sprintf("%.2f GB", float64(diskReport.total)/size1GB),
+		"free", fmt.Sprintf("%.2f GB", float64(diskReport.free)/size1GB),
+		"used", fmt.Sprintf("%.2f GB", float64(diskReport.used)/size1GB),
+		"percent", fmt.Sprintf("%.2f%%", diskReport.percent),
+	)
 }
 
 func metricsCycle(interval int, outputType string, outputFile string) {
 	count := 0
-	for count < 10 {
+	for count < 2 {
 		getSystemMetrics(outputType, outputFile)
 		time.Sleep(time.Duration(interval))
 		count++

@@ -7,17 +7,17 @@ import (
 )
 
 func run() error {
-	runMode := flag.String("mode", "server", "Select running mode [server, client]")
+	runMode := flag.String("mode", "client", "Select running mode [server, client]")
 	flag.Parse()
 	var err error = nil
 
 	switch *runMode {
-	case "server":
-		fmt.Println("Running as server")
-		err = Server()
 	case "client":
 		fmt.Println("Running as client")
 		err = Client()
+	case "server":
+		fmt.Println("Running as server")
+		err = Server()
 	default:
 		fmt.Println("Invalid mode option")
 	}

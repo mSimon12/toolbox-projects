@@ -2,7 +2,8 @@
 
 A lightweight CLI tool written in Go to monitor your system’s CPU, memory, and disk usage in real time. Logs are emitted in structured JSON, and can be output to cmd or to a .log file.
 
-## ⚡ Installation
+---
+## ⚡ Setup
 
 ```bash
 git clone https://github.com/mSimon12/toolbox-projects.git
@@ -12,7 +13,7 @@ go build -o sys-monitor .
 
 This creates a standalone ``sys-monitor`` binary.
 
-
+---
 ## 🏃 Usage
 
 The app will print system metrics every few seconds in structured JSON. The output format is defined by the parameters added to the terminal command ``./sys-monitor``. It allows configuration of metrics interval and output format (console vs log file).

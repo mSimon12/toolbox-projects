@@ -4,20 +4,31 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 )
 
 func run() error {
-	runMode := flag.String("mode", "client", "Select running mode [server, client]")
-	flag.Parse()
+	var runMode string
+	var host string
+	var port int
+	var maxClients int
 	var err error = nil
 
-	switch *runMode {
+	flag.StringVar(&runMode, "mode", "client", "Select running mode [server, client]")
+	flag.StringVar(&host, "host", "localhost", "Set server address")
+	flag.IntVar(&port, "port", 8080, "Set server port")
+	flag.IntVar(&maxClients, "maxClients", 50, "Define maximum concurrent connections")
+	flag.Parse()
+
+	switch runMode {
 	case "client":
-		fmt.Println("Running as client")
-		err = Client()
+		address := host + ":" + strconv.Itoa(port)
+		err = Client(address)
+
 	case "server":
 		fmt.Println("Running as server")
-		err = Server()
+		err = Server(strconv.Itoa(port), maxClients)
+
 	default:
 		fmt.Println("Invalid mode option")
 	}

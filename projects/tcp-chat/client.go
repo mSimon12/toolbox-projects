@@ -6,8 +6,8 @@ import (
 	"net"
 )
 
-func Client() error {
-	tcpConn, err := net.Dial("tcp", "localhost:8080")
+func Client(serverAddress string) error {
+	tcpConn, err := net.Dial("tcp", serverAddress)
 	if err != nil {
 		return fmt.Errorf("failed connecting: %w", err)
 	}
@@ -15,9 +15,7 @@ func Client() error {
 
 	msg := []byte("Hello from Client")
 
-	tcpConn.Write(msg)
-
-	if _, err := tcpConn.Write([]byte("Hello, World!")); err != nil {
+	if _, err := tcpConn.Write(msg); err != nil {
 		return errors.New("failed to send message")
 	}
 

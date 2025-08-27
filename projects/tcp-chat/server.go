@@ -29,8 +29,9 @@ func ConnHandler(tcpConn net.Conn) {
 	}
 }
 
-func Server() error {
-	listener, err := net.Listen("tcp", ":8080")
+func Server(port string, maxClients int) error {
+
+	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		return fmt.Errorf("failed starting listener: %w", err)
 	}

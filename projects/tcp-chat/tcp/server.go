@@ -1,10 +1,30 @@
-package main
+package tcp
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 )
+
+func TcpSend(tcpConn net.Conn, msg string) error {
+	chatMsg := ChatMessage{
+		Sender:  tcpConn.LocalAddr().String(),
+		Content: msg,
+	}
+
+	payload, err := json.Marshal(chatMsg)
+	if err != nil {
+		return fmt.Errorf("failed to marshal message: %w", err)
+	}
+
+	if _, err := tcpConn.Write(payload); err != nil {
+		return errors.New("failed to send message")
+	}
+
+	return nil
+}
 
 func ConnHandler(tcpConn net.Conn) {
 	defer tcpConn.Close()
@@ -21,11 +41,15 @@ func ConnHandler(tcpConn net.Conn) {
 			return
 		}
 
-		msg := string(buf[:n])
-		fmt.Printf("Received from %s: %s\n", tcpConn.RemoteAddr(), msg)
+		var chatMsg ChatMessage
+		if err := json.Unmarshal(buf[:n], &chatMsg); err != nil {
+			fmt.Println("Failed to unmarshal message:", err)
+			continue
+		}
+		fmt.Printf("Received from %s: %s\n", chatMsg.Sender, chatMsg.Content)
 
 		// optionally send back a reply
-		_, _ = tcpConn.Write([]byte("Message received\n"))
+		_ = TcpSend(tcpConn, "Message received")
 	}
 }
 
@@ -45,5 +69,6 @@ func Server(port string, maxClients int) error {
 		fmt.Println("Accepted connection from:", tcpConn.RemoteAddr())
 
 		go ConnHandler(tcpConn)
+
 	}
 }

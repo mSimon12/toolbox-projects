@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log/slog"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -29,9 +31,14 @@ func listenForMessages(ch <-chan tcp.ChatMessage) tea.Cmd {
 	}
 }
 
-func sendMessageCmd(client tcp.TcpClient, msg string) tea.Cmd {
+func sendMessageCmd(client tcp.TcpInterface, msg string) tea.Cmd {
+	chatMsg := tcp.ChatMessage{
+		Sender:  client.Id,
+		Content: msg,
+	}
+
 	return func() tea.Msg {
-		if err := client.TcpSend(msg); err != nil {
+		if err := client.TcpSend(chatMsg); err != nil {
 			return errMsg(err) // Bubbletea will handle this like other errors
 		}
 		return nil
@@ -44,11 +51,11 @@ type chatModel struct {
 	textarea    textarea.Model //Area for writing messages
 	senderStyle lipgloss.Style
 	receivedMsg <-chan tcp.ChatMessage // channel for new messages
-	client      tcp.TcpClient
+	client      tcp.TcpInterface
 	err         error
 }
 
-func initialModel(receivedMsg <-chan tcp.ChatMessage, client tcp.TcpClient) chatModel {
+func initialModel(receivedMsg <-chan tcp.ChatMessage, client tcp.TcpInterface) chatModel {
 	ta := textarea.New()
 	ta.Placeholder = "Send a message..."
 	ta.Focus()
@@ -144,6 +151,16 @@ func (m chatModel) View() string {
 	)
 }
 
+func NewTCPClient(serverAddress string) (*tcp.TcpInterface, error) {
+	conn, err := net.Dial("tcp", serverAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed connecting: %w", err)
+	}
+	slog.Info("Connected to Server", "address", conn.RemoteAddr())
+
+	return &tcp.TcpInterface{TcpConn: conn, Id: conn.LocalAddr().String()}, nil
+}
+
 func run() error {
 	var host string
 	var port int
@@ -156,7 +173,7 @@ func run() error {
 
 	receivedMsg := make(chan tcp.ChatMessage)
 
-	client, err := tcp.NewTCPClient(address)
+	client, err := NewTCPClient(address)
 	if err != nil {
 		return err
 	}

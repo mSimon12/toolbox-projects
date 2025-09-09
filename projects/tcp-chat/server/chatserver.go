@@ -6,33 +6,33 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"tcpchat/tcp"
+	"tcpchat/transport"
 )
 
-type tcpServer struct {
-	users map[string]tcp.TcpInterface
-	msgCh chan tcp.ChatMessage
+type chatServer struct {
+	users map[string]transport.TransportNode
+	msgCh chan transport.ChatMessage
 }
 
-func (s *tcpServer) addUser(userConn net.Conn) {
-	newUser := tcp.TcpInterface{TcpConn: userConn, Id: userConn.RemoteAddr().String()}
+func (s *chatServer) addUser(userConn net.Conn) {
+	newUser := transport.TransportNode{TcpConn: userConn, NodeId: userConn.RemoteAddr().String()}
 	s.users[userConn.RemoteAddr().String()] = newUser
 	go newUser.TcpReceive(s.msgCh)
 }
 
-func (s *tcpServer) MsgsController() {
+func (s *chatServer) MsgsController() {
 	for {
 		msg := <-s.msgCh
 
 		for _, user := range s.users {
-			if user.Id != msg.Sender {
+			if user.NodeId != msg.Sender {
 				user.TcpSend(msg)
 			}
 		}
 	}
 }
 
-func NewTcpServer(port string, maxClients int) error {
+func RunChatServer(port string, maxClients int) error {
 
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
@@ -40,9 +40,9 @@ func NewTcpServer(port string, maxClients int) error {
 	}
 	defer listener.Close()
 
-	server := tcpServer{
-		users: make(map[string]tcp.TcpInterface),
-		msgCh: make(chan tcp.ChatMessage),
+	server := chatServer{
+		users: make(map[string]transport.TransportNode),
+		msgCh: make(chan transport.ChatMessage),
 	}
 
 	go server.MsgsController()
@@ -68,7 +68,7 @@ func run() error {
 	flag.Parse()
 
 	fmt.Println("Starting server")
-	err = NewTcpServer(strconv.Itoa(port), maxClients)
+	err = RunChatServer(strconv.Itoa(port), maxClients)
 
 	return err
 }

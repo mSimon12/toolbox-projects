@@ -1,4 +1,4 @@
-package tcp
+package transport
 
 import (
 	"encoding/json"
@@ -9,12 +9,16 @@ import (
 	"net"
 )
 
-type TcpInterface struct {
+// TransportNode represents a node in the TCP chat system, encapsulating the TCP connection and its identifier.
+//
+// The provided methods [TcpSend] and [TcpReceive] allow sending and receiving messages over the TCP connection.
+type TransportNode struct {
 	TcpConn net.Conn
-	Id      string
+	NodeId  string
 }
 
-func (client *TcpInterface) TcpReceive(newMsg chan<- ChatMessage) {
+// TcpReceive listens for incoming messages from the TCP connection and sends them to the provided channel.
+func (client *TransportNode) TcpReceive(newMsg chan<- ChatMessage) {
 	buf := make([]byte, 1024)
 	for {
 		n, err := client.TcpConn.Read(buf)
@@ -37,7 +41,8 @@ func (client *TcpInterface) TcpReceive(newMsg chan<- ChatMessage) {
 	}
 }
 
-func (client *TcpInterface) TcpSend(msg ChatMessage) error {
+// TcpSend sends a ChatMessage over the TCP connection.
+func (client *TransportNode) TcpSend(msg ChatMessage) error {
 	payload, err := encodeMsg(msg)
 	if err != nil {
 		return fmt.Errorf("failed to marshal message: %w", err)
@@ -50,10 +55,11 @@ func (client *TcpInterface) TcpSend(msg ChatMessage) error {
 	return nil
 }
 
-func (client *TcpInterface) Close() error {
+func (client *TransportNode) Close() error {
 	return client.TcpConn.Close()
 }
 
+// encodeMsg serializes a ChatMessage into JSON format.
 func encodeMsg(msg ChatMessage) ([]byte, error) {
 	payload, err := json.Marshal(msg)
 	if err != nil {
@@ -64,6 +70,7 @@ func encodeMsg(msg ChatMessage) ([]byte, error) {
 	return payload, nil
 }
 
+// decodeMsg deserializes JSON data into a ChatMessage.
 func decodeMsg(payload []byte) (ChatMessage, error) {
 	n := len(payload)
 	msg := ChatMessage{}

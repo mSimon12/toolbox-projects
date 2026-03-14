@@ -17,9 +17,7 @@ A simple TCP-based chat application written in Go that supports multiple clients
 Clone the repository and build the binaries:
 
 ```bash
-git clone https://github.com/yourusername/tcp-chat.git
-cd tcp-chat
-go build -o tcp-chat .
+go build -o chatbox .
 ```
 
 ---
@@ -28,7 +26,7 @@ go build -o tcp-chat .
 **Start the server:**
 
 ```bash
-./tcp-chat -mode server
+./chatbox -mode server
 ```
 
 By default, it listens on port 8080.
@@ -36,7 +34,7 @@ By default, it listens on port 8080.
 **Connect a client:**
 
 ```bash
-./tcp-chat
+./chatbox
 ```
 
 *The client connects to localhost:8080 by default.

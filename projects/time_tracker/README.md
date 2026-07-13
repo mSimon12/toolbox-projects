@@ -31,9 +31,23 @@ uv run time-tracker list [--limit N]        # show recent entries (default 20)
 uv run time-tracker report [--today | --week | --from DATE --to DATE]
                                              # total hours + entries for a period
                                              # (defaults to --today if no flag given)
+uv run time-tracker log --day DAY --start HH:MM --end HH:MM [--note TEXT] [--force]
+                                             # add a completed entry for a past day; DAY is
+                                             # YYYY-MM-DD or "today", start/end are local HH:MM
+                                             # (error if that day already has an entry, unless --force)
+uv run time-tracker edit --id ID [--start "YYYY-MM-DD HH:MM"] [--end "YYYY-MM-DD HH:MM"] [--note TEXT]
+                                             # update one or more fields on an existing entry
+uv run time-tracker delete --id ID [--yes]  # remove an entry (prompts for confirmation unless --yes)
+uv run time-tracker pause --start "YYYY-MM-DD HH:MM" --end "YYYY-MM-DD HH:MM"
+                                             # retroactively split the single entry that strictly
+                                             # contains this window into two rows, excluding the gap;
+                                             # ignored (no-op) if no entry strictly contains the window
 ```
 
 Dates for `--from`/`--to` use `YYYY-MM-DD` and are inclusive on both ends.
+Times for `log --start`/`--end` use local time in `HH:MM` format (paired with
+`--day`). Times for `edit --start`/`--end` and `pause --start`/`--end` use
+local time in `YYYY-MM-DD HH:MM` format.
 
 ### Example
 
@@ -51,6 +65,27 @@ $ uv run time-tracker report --today
 Total: 0h 17m
   2026-07-13 18:48 -> 2026-07-13 19:05 — writing docs
 ```
+
+### Editing past entries
+
+```bash
+$ uv run time-tracker log --day 2026-07-10 --start 09:00 --end 15:00 --note "conference"
+Logged entry 1:  2026-07-10 09:00 -> 2026-07-10 15:00 — conference
+
+$ uv run time-tracker edit --id 1 --end "2026-07-10 16:00"
+Updated entry 1:  2026-07-10 09:00 -> 2026-07-10 16:00 — conference
+
+$ uv run time-tracker pause --start "2026-07-10 12:00" --end "2026-07-10 13:00"
+Pause applied: entry 1:  2026-07-10 09:00 -> 2026-07-10 12:00 — conference
+            new entry 2:  2026-07-10 13:00 -> 2026-07-10 16:00 — conference
+
+$ uv run time-tracker delete --id 2 --yes
+Deleted entry 2.
+```
+
+`pause` only splits an entry when the window falls **strictly inside** it —
+touching a boundary, spanning two entries, or targeting the still-open entry
+all leave the data untouched and print that the pause was ignored.
 
 ## Configuration
 

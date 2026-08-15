@@ -6,13 +6,7 @@ from dataclasses import dataclass, field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.errors import (
-    AlreadyClockedIn,
-    EntryExistsForDay,
-    EntryNotFound,
-    InvalidTimeRange,
-    NotClockedIn,
-)
+from src.errors import AlreadyClockedIn, EntryExistsForDay, EntryNotFound, InvalidTimeRange, NotClockedIn
 from src.models import TimeEntry
 
 
@@ -20,9 +14,7 @@ def _utcnow() -> dt.datetime:
     return dt.datetime.now(dt.UTC).replace(tzinfo=None)
 
 
-def _local_bounds_to_utc(
-    local_start: dt.datetime, local_end: dt.datetime
-) -> ReportPeriod:
+def _local_bounds_to_utc(local_start: dt.datetime, local_end: dt.datetime) -> ReportPeriod:
     return ReportPeriod(
         start=local_start.astimezone(dt.UTC).replace(tzinfo=None),
         end=local_end.astimezone(dt.UTC).replace(tzinfo=None),
@@ -127,14 +119,7 @@ class TimeTracker:
         stmt = select(TimeEntry).order_by(TimeEntry.start.desc()).limit(limit)
         return list(self.session.scalars(stmt).all())
 
-    def log(
-        self,
-        day: dt.date,
-        start_time: dt.time,
-        end_time: dt.time,
-        note: str | None = None,
-        force: bool = False,
-    ) -> TimeEntry:
+    def log(self, day: dt.date, start_time: dt.time, end_time: dt.time,  note: str | None = None, force: bool = False) -> TimeEntry:
         tz = dt.datetime.now().astimezone().tzinfo
         local_day_start = dt.datetime.combine(day, dt.time.min, tzinfo=tz)
         local_day_end = local_day_start + dt.timedelta(days=1)
@@ -162,14 +147,7 @@ class TimeTracker:
         self.session.refresh(entry)
         return entry
 
-    def edit(
-        self,
-        entry_id: int,
-        *,
-        start: dt.datetime | None = None,
-        end: dt.datetime | None = None,
-        note: str | None = None,
-    ) -> TimeEntry:
+    def edit(self, entry_id: int, *, start: dt.datetime | None = None, end: dt.datetime | None = None, note: str | None = None) -> TimeEntry:
         entry = self._get_entry(entry_id)
 
         new_start = start if start is not None else entry.start
